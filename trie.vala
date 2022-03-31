@@ -85,13 +85,45 @@ public class Trie {
 public static int main(string[] args) {
 	Test.init(ref args);
 
-	Test.add_func("/trie/test1", () => {
+	Test.add_func("/trie/add_one", () => {
+		Trie t = new Trie();
+		t.add("foo");
+		string s = t.to_string();
+		if (s != "Trie(\"foo\")") {
+			Test.message(s);
+			Test.fail();
+		}
+	});
+
+	Test.add_func("/trie/add_multiple", () => {
+		Trie t = new Trie();
+		t.add("foo");
+		t.add("bar");
+		string s = t.to_string();
+		if (s != "Trie({f: \"foo\", b: \"bar\"})") {
+			Test.message(s);
+			Test.fail();
+		}
+	});
+
+	Test.add_func("/trie/add_multiple_with_duplicate", () => {
 		Trie t = new Trie();
 		t.add("foo");
 		t.add("bar");
 		t.add("foo");
 		string s = t.to_string();
 		if (s != "Trie({f: \"foo\", b: \"bar\"})") {
+			Test.message(s);
+			Test.fail();
+		}
+	});
+
+	Test.add_func("/trie/add_prefix", () => {
+		Trie t = new Trie();
+		t.add("foo");
+		t.add("food");
+		string s = t.to_string();
+		if (s != "Trie({f: {o: {o: {: \"foo\", d: \"food\"}}}})") {
 			Test.message(s);
 			Test.fail();
 		}
