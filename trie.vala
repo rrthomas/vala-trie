@@ -44,22 +44,26 @@ private class Node {
 		);
 	}
 
-	internal void add_pos(string word, long pos) {
+	internal void add_index(string word, int index) {
 		if (leaf != null) {
 			string tmp = this.leaf;
 			if (tmp == word)
 				return;
 			this.leaf = null;
 			this.branch = new HashMap<unichar, Node>();
-			this.add_pos(tmp, pos);
-			this.add_pos(word, pos);
+			this.add_index(tmp, index);
+			this.add_index(word, index);
 		} else {
-			unichar u = word[pos];
-			Node subtrie = this.branch[u];
-			if (subtrie == null)
+			unichar u;
+			if (word.get_next_char(ref index, out u)) {
+				Node subtrie = this.branch[u];
+				if (subtrie == null)
+					this.branch[u] = new Node.from_leaf(word);
+				else
+					subtrie.add_index(word, index);
+			} else if (index == word.length) {
 				this.branch[u] = new Node.from_leaf(word);
-			else
-				subtrie.add_pos(word, pos + 1);
+			}
 		}
 	}
 }
@@ -78,7 +82,7 @@ public class Trie {
 		if (this.root == null)
 			this.root = new Node.from_leaf(word);
 		else
-			this.root.add_pos(word, 0);
+			this.root.add_index(word, 0);
 	}
 }
 
