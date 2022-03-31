@@ -70,7 +70,7 @@ public class Trie {
 
     public string to_string() {
         if (this.root == null)
-            return "Trie(null)";
+            return "Trie(empty)";
         else
             return @"Trie($(this.root.to_string()))";
     }
