@@ -44,15 +44,15 @@ private class Node {
 		);
 	}
 
-	internal void add_index(string word, int index) {
+	internal void add_index(string word, long len, int index) {
 		if (leaf != null) {
-			string tmp = this.leaf;
-			if (tmp == word)
+			string old_leaf = this.leaf;
+			if (old_leaf == word)
 				return;
 			this.leaf = null;
 			this.branch = new HashMap<unichar, Node>();
-			this.add_index(tmp, index);
-			this.add_index(word, index);
+			this.add_index(old_leaf, old_leaf.length, index);
+			this.add_index(word, len, index);
 		} else {
 			unichar u;
 			if (word.get_next_char(ref index, out u)) {
@@ -60,8 +60,8 @@ private class Node {
 				if (subtrie == null)
 					this.branch[u] = new Node.from_leaf(word);
 				else
-					subtrie.add_index(word, index);
-			} else if (index == word.length) {
+					subtrie.add_index(word, len, index);
+			} else if (index == len) {
 				this.branch[u] = new Node.from_leaf(word);
 			}
 		}
@@ -82,7 +82,7 @@ public class Trie {
 		if (this.root == null)
 			this.root = new Node.from_leaf(word);
 		else
-			this.root.add_index(word, 0);
+			this.root.add_index(word, word.length, 0);
 	}
 }
 
