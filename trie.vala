@@ -35,9 +35,8 @@ private class Node {
     }
     
     internal string to_string() {
-        if (this.leaf != null) {
+        if (this.leaf != null)
             return @"\"$(this.leaf)\"";
-        }
         return hash_map_to_string<unichar, Node>(
             this.branch,
             (a) => { return a.to_string(); },
