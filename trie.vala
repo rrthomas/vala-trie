@@ -89,6 +89,15 @@ public class Trie {
 public static int main(string[] args) {
 	Test.init(ref args);
 
+	Test.add_func("/trie/empty", () => {
+		Trie t = new Trie();
+		string s = t.to_string();
+		if (s != "Trie(empty)") {
+			Test.message(s);
+			Test.fail();
+		}
+	});
+
 	Test.add_func("/trie/add_one", () => {
 		Trie t = new Trie();
 		t.add("foo");
