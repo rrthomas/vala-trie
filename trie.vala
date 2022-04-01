@@ -21,8 +21,8 @@ string hash_map_to_string<K, V>(
 }
 
 private class Node {
-	string? leaf;
-	HashMap<unichar, Node> branch;
+	internal string? leaf;
+	internal HashMap<unichar, Node> branch;
 
 	private Node() {} // Forbid construction with no fields.
 
@@ -66,6 +66,30 @@ private class Node {
 			}
 		}
 	}
+
+	internal void remove_index(string word, long len, int index) {
+		if (this.leaf == null) {
+			unichar u;
+			if (word.get_next_char(ref index, out u)) {
+				Node subtrie = this.branch[u];
+				if (subtrie == null)
+					return;
+				subtrie.remove_index(word, len, index);
+				if (subtrie.leaf == null && subtrie.branch == null)
+					this.branch.unset(u);
+			} else if (index == len)
+				this.branch.unset(0);
+			if (this.branch.size == 1) {
+				Map.Entry<unichar, Node> e = this.branch.entries.to_array()[0];
+				if (e.value.leaf != null) {
+					this.leaf = e.value.leaf;
+					this.branch = null;
+				}
+			}
+		} else if (this.leaf == word) {
+			this.leaf = null;
+		}
+	}
 }
 
 public class Trie {
@@ -83,6 +107,14 @@ public class Trie {
 			this.root = new Node.from_leaf(word);
 		else
 			this.root.add_index(word, word.length, 0);
+	}
+
+	public void remove(string word) {
+		if (this.root == null)
+			return;
+		this.root.remove_index(word, word.length, 0);
+		if (this.root.leaf == null && this.root.branch == null)
+			this.root = null;
 	}
 }
 
@@ -137,6 +169,29 @@ public static int main(string[] args) {
 		t.add("food");
 		string s = t.to_string();
 		if (s != "Trie({f: {o: {o: {: \"foo\", d: \"food\"}}}})") {
+			Test.message(s);
+			Test.fail();
+		}
+	});
+
+	Test.add_func("/trie/add_one_remove_one", () => {
+		Trie t = new Trie();
+		t.add("foo");
+		t.remove("foo");
+		string s = t.to_string();
+		if (s != "Trie(empty)") {
+			Test.message(s);
+			Test.fail();
+		}
+	});
+
+	Test.add_func("/trie/add_two_remove_one", () => {
+		Trie t = new Trie();
+		t.add("foo");
+		t.add("bar");
+		t.remove("foo");
+		string s = t.to_string();
+		if (s != "Trie(\"bar\")") {
 			Test.message(s);
 			Test.fail();
 		}
