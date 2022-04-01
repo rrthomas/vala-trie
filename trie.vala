@@ -44,8 +44,26 @@ private class Node {
 		);
 	}
 
+	internal bool has_index(string word, long len, int index) {
+		if (this.leaf != null)
+			return word == this.leaf;
+		else {
+			unichar u;
+			if (word.get_next_char(ref index, out u)) {
+				Node subtrie = this.branch[u];
+				if (subtrie == null)
+					return false;
+				else
+					return subtrie.has_index(word, len, index);
+			} else {
+				Node subtrie = this.branch[0];
+				return subtrie.leaf != null && subtrie.leaf == word;
+			}
+		}
+	}
+
 	internal void add_index(string word, long len, int index) {
-		if (leaf != null) {
+		if (this.leaf != null) {
 			string old_leaf = this.leaf;
 			if (old_leaf == word)
 				return;
@@ -102,6 +120,13 @@ public class Trie {
 			return @"Trie($(this.root.to_string()))";
 	}
 
+	public bool has(string word) {
+		if (this.root == null)
+			return false;
+		else
+			return this.root.has_index(word, word.length, 0);
+	}
+
 	public void add(string word) {
 		if (this.root == null)
 			this.root = new Node.from_leaf(word);
@@ -118,71 +143,65 @@ public class Trie {
 	}
 }
 
-public static int main(string[] args) {
+void test(Trie t, string expected) {
+	string output = t.to_string();
+	if (output != expected) {
+		Test.message(output);
+		Test.fail();
+	}
+}
+
+public int main(string[] args) {
 	Test.init(ref args);
 
 	Test.add_func("/trie/empty", () => {
 		Trie t = new Trie();
-		string s = t.to_string();
-		if (s != "Trie(empty)") {
-			Test.message(s);
-			Test.fail();
-		}
+		assert(!t.has("foo"));
+		test(t, "Trie(empty)");
 	});
 
 	Test.add_func("/trie/add_one", () => {
 		Trie t = new Trie();
 		t.add("foo");
-		string s = t.to_string();
-		if (s != "Trie(\"foo\")") {
-			Test.message(s);
-			Test.fail();
-		}
+		assert(t.has("foo"));
+		test(t, "Trie(\"foo\")");
 	});
 
 	Test.add_func("/trie/add_multiple", () => {
 		Trie t = new Trie();
 		t.add("foo");
 		t.add("bar");
-		string s = t.to_string();
-		if (s != "Trie({f: \"foo\", b: \"bar\"})") {
-			Test.message(s);
-			Test.fail();
-		}
+		assert(t.has("foo"));
+		assert(t.has("bar"));
+		test(t, "Trie({f: \"foo\", b: \"bar\"})");
 	});
 
 	Test.add_func("/trie/add_multiple_with_duplicate", () => {
 		Trie t = new Trie();
 		t.add("foo");
+		assert(t.has("foo"));
 		t.add("bar");
 		t.add("foo");
-		string s = t.to_string();
-		if (s != "Trie({f: \"foo\", b: \"bar\"})") {
-			Test.message(s);
-			Test.fail();
-		}
+		assert(t.has("foo"));
+		assert(t.has("bar"));
+		test(t, "Trie({f: \"foo\", b: \"bar\"})");
 	});
 
 	Test.add_func("/trie/add_prefix", () => {
 		Trie t = new Trie();
 		t.add("foo");
 		t.add("food");
-		string s = t.to_string();
-		if (s != "Trie({f: {o: {o: {: \"foo\", d: \"food\"}}}})") {
-			Test.message(s);
-			Test.fail();
-		}
+		assert(t.has("foo"));
+		assert(t.has("food"));
+		test(t, "Trie({f: {o: {o: {: \"foo\", d: \"food\"}}}})");
 	});
 
 	Test.add_func("/trie/add_one_remove_one", () => {
 		Trie t = new Trie();
 		t.add("foo");
 		t.remove("foo");
-		string s = t.to_string();
-		if (s != "Trie(empty)") {
-			Test.message(s);
-			Test.fail();
-		}
+		assert(!t.has("foo"));
+		test(t, "Trie(empty)");
 	});
 
 	Test.add_func("/trie/add_two_remove_one", () => {
@@ -190,11 +209,41 @@ public static int main(string[] args) {
 		t.add("foo");
 		t.add("bar");
 		t.remove("foo");
-		string s = t.to_string();
-		if (s != "Trie(\"bar\")") {
-			Test.message(s);
-			Test.fail();
-		}
+		assert(!t.has("foo"));
+		assert(t.has("bar"));
+		test(t, "Trie(\"bar\")");
+	});
+
+	Test.add_func("/trie/add_three_remove_one", () => {
+		Trie t = new Trie();
+		t.add("foo");
+		t.add("bar");
+		t.add("baz");
+		t.remove("bar");
+		assert(t.has("foo"));
+		assert(!t.has("bar"));
+		assert(t.has("baz"));
+		test(t, "Trie({f: \"foo\", b: \"baz\"})");
+	});
+
+	Test.add_func("/trie/remove_from_empty", () => {
+		Trie t = new Trie();
+		t.remove("foo");
+		assert(!t.has("foo"));
+		test(t, "Trie(empty)");
+	});
+
+	Test.add_func("/trie/add_three_remove_nonexistent", () => {
+		Trie t = new Trie();
+		t.add("foo");
+		t.add("bar");
+		t.add("baz");
+		t.remove("bad");
+		assert(t.has("foo"));
+		assert(t.has("bar"));
+		assert(t.has("baz"));
+		assert(!t.has("bad"));
+		test(t, "Trie({f: \"foo\", b: {a: {z: \"baz\", r: \"bar\"}}})");
 	});
 
 	return Test.run();
