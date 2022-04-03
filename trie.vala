@@ -46,7 +46,7 @@ private class Node {
 		);
 	}
 
-	internal bool has_index(string word, int index) {
+	internal bool contains_index(string word, int index) {
 		if (this.leaf != null)
 			return word == this.leaf;
 		else {
@@ -56,7 +56,7 @@ private class Node {
 				if (subtrie == null)
 					return false;
 				else
-					return subtrie.has_index(word, index);
+					return subtrie.contains_index(word, index);
 			} else {
 				Node subtrie = this.branch[0];
 				return subtrie.leaf != null && subtrie.leaf == word;
@@ -142,11 +142,10 @@ public class Trie {
 			return @"Trie($(this.root.to_string()))";
 	}
 
-	public bool has(string word) {
+	public bool contains(string word) {
 		if (this.root == null)
 			return false;
-		else
-			return this.root.has_index(word, 0);
+		return this.root.contains_index(word, 0);
 	}
 
 	public Set<string> match(string word, Matcher fn) {
@@ -192,14 +191,14 @@ public int main(string[] args) {
 
 	Test.add_func("/trie/empty", () => {
 		var t = new Trie();
-		assert(!t.has("foo"));
+		assert(!t.contains("foo"));
 		test(t, "Trie(empty)");
 	});
 
 	Test.add_func("/trie/add_one", () => {
 		var t = new Trie();
 		t.add("foo");
-		assert(t.has("foo"));
+		assert(t.contains("foo"));
 		test(t, "Trie(\"foo\")");
 	});
 
@@ -207,19 +206,19 @@ public int main(string[] args) {
 		var t = new Trie();
 		t.add("foo");
 		t.add("bar");
-		assert(t.has("foo"));
-		assert(t.has("bar"));
+		assert(t.contains("foo"));
+		assert(t.contains("bar"));
 		test(t, "Trie({f: \"foo\", b: \"bar\"})");
 	});
 
 	Test.add_func("/trie/add_multiple_with_duplicate", () => {
 		var t = new Trie();
 		t.add("foo");
-		assert(t.has("foo"));
+		assert(t.contains("foo"));
 		t.add("bar");
 		t.add("foo");
-		assert(t.has("foo"));
-		assert(t.has("bar"));
+		assert(t.contains("foo"));
+		assert(t.contains("bar"));
 		test(t, "Trie({f: \"foo\", b: \"bar\"})");
 	});
 
@@ -227,8 +226,8 @@ public int main(string[] args) {
 		var t = new Trie();
 		t.add("foo");
 		t.add("food");
-		assert(t.has("foo"));
-		assert(t.has("food"));
+		assert(t.contains("foo"));
+		assert(t.contains("food"));
 		test(t, "Trie({f: {o: {o: {: \"foo\", d: \"food\"}}}})");
 	});
 
@@ -252,7 +251,7 @@ public int main(string[] args) {
 		var t = new Trie();
 		t.add("foo");
 		t.remove("foo");
-		assert(!t.has("foo"));
+		assert(!t.contains("foo"));
 		test(t, "Trie(empty)");
 	});
 
@@ -261,8 +260,8 @@ public int main(string[] args) {
 		t.add("foo");
 		t.add("bar");
 		t.remove("foo");
-		assert(!t.has("foo"));
-		assert(t.has("bar"));
+		assert(!t.contains("foo"));
+		assert(t.contains("bar"));
 		test(t, "Trie(\"bar\")");
 	});
 
@@ -272,16 +271,16 @@ public int main(string[] args) {
 		t.add("bar");
 		t.add("baz");
 		t.remove("bar");
-		assert(t.has("foo"));
-		assert(!t.has("bar"));
-		assert(t.has("baz"));
+		assert(t.contains("foo"));
+		assert(!t.contains("bar"));
+		assert(t.contains("baz"));
 		test(t, "Trie({f: \"foo\", b: \"baz\"})");
 	});
 
 	Test.add_func("/trie/remove_from_empty", () => {
 		var t = new Trie();
 		t.remove("foo");
-		assert(!t.has("foo"));
+		assert(!t.contains("foo"));
 		test(t, "Trie(empty)");
 	});
 
@@ -291,10 +290,10 @@ public int main(string[] args) {
 		t.add("bar");
 		t.add("baz");
 		t.remove("bad");
-		assert(t.has("foo"));
-		assert(t.has("bar"));
-		assert(t.has("baz"));
-		assert(!t.has("bad"));
+		assert(t.contains("foo"));
+		assert(t.contains("bar"));
+		assert(t.contains("baz"));
+		assert(!t.contains("bad"));
 		test(t, "Trie({f: \"foo\", b: {a: {z: \"baz\", r: \"bar\"}}})");
 	});
 
