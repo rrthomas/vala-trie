@@ -46,7 +46,7 @@ private class Node {
 		);
 	}
 
-	internal bool has_index(string word, long len, int index) {
+	internal bool has_index(string word, int index) {
 		if (this.leaf != null)
 			return word == this.leaf;
 		else {
@@ -56,7 +56,7 @@ private class Node {
 				if (subtrie == null)
 					return false;
 				else
-					return subtrie.has_index(word, len, index);
+					return subtrie.has_index(word, index);
 			} else {
 				Node subtrie = this.branch[0];
 				return subtrie.leaf != null && subtrie.leaf == word;
@@ -144,7 +144,7 @@ public class Trie {
 		if (this.root == null)
 			return false;
 		else
-			return this.root.has_index(word, word.length, 0);
+			return this.root.has_index(word, 0);
 	}
 
 	public Set<string> match(string word, Matcher fn) {
