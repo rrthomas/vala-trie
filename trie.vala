@@ -20,6 +20,8 @@ string hash_map_to_string<K, V>(
 	return sb.str;
 }
 
+public delegate bool Matcher(string word);
+
 private class Node {
 	internal string? leaf;
 	internal HashMap<unichar, Node> branch;
@@ -62,9 +64,27 @@ private class Node {
 		}
 	}
 
+	internal Set<string> match_index(string word, long len, int index, Matcher fn, Set<string> results) {
+		if (this.leaf != null) {
+			if (fn(word))
+				results.add(this.leaf);
+		} else {
+			unichar u;
+			if (word.get_next_char(ref index, out u)) {
+				var subtrie = this.branch[u];
+				if (subtrie != null && fn(word.substring(0, index)))
+					subtrie.match_index(word, len, index, fn, results);
+			} else {
+				foreach (var e in this.branch)
+					e.value.match_index(word, len, (int)len, fn, results);
+			}
+		}
+		return results;
+	}
+
 	internal void add_index(string word, long len, int index) {
 		if (this.leaf != null) {
-			string old_leaf = this.leaf;
+			var old_leaf = this.leaf;
 			if (old_leaf == word)
 				return;
 			this.leaf = null;
@@ -74,7 +94,7 @@ private class Node {
 		} else {
 			unichar u;
 			if (word.get_next_char(ref index, out u)) {
-				Node subtrie = this.branch[u];
+				var subtrie = this.branch[u];
 				if (subtrie == null)
 					this.branch[u] = new Node.from_leaf(word);
 				else
@@ -127,6 +147,13 @@ public class Trie {
 			return this.root.has_index(word, word.length, 0);
 	}
 
+	public Set<string> match(string word, Matcher fn) {
+		var results = new HashSet<string>();
+		if (this.root == null)
+			return results;
+		return this.root.match_index(word, word.length, 0, fn, results);
+	}
+
 	public void add(string word) {
 		if (this.root == null)
 			this.root = new Node.from_leaf(word);
@@ -143,8 +170,15 @@ public class Trie {
 	}
 }
 
+void print_set(Set<string> s) {
+	foreach (var v in s)
+		Test.message(@"$v");
+	if (s.is_empty)
+		Test.message("empty");
+}
+
 void test(Trie t, string expected) {
-	string output = t.to_string();
+	var output = t.to_string();
 	if (output != expected) {
 		Test.message(output);
 		Test.fail();
@@ -155,20 +189,20 @@ public int main(string[] args) {
 	Test.init(ref args);
 
 	Test.add_func("/trie/empty", () => {
-		Trie t = new Trie();
+		var t = new Trie();
 		assert(!t.has("foo"));
 		test(t, "Trie(empty)");
 	});
 
 	Test.add_func("/trie/add_one", () => {
-		Trie t = new Trie();
+		var t = new Trie();
 		t.add("foo");
 		assert(t.has("foo"));
 		test(t, "Trie(\"foo\")");
 	});
 
 	Test.add_func("/trie/add_multiple", () => {
-		Trie t = new Trie();
+		var t = new Trie();
 		t.add("foo");
 		t.add("bar");
 		assert(t.has("foo"));
@@ -177,7 +211,7 @@ public int main(string[] args) {
 	});
 
 	Test.add_func("/trie/add_multiple_with_duplicate", () => {
-		Trie t = new Trie();
+		var t = new Trie();
 		t.add("foo");
 		assert(t.has("foo"));
 		t.add("bar");
@@ -188,7 +222,7 @@ public int main(string[] args) {
 	});
 
 	Test.add_func("/trie/add_prefix", () => {
-		Trie t = new Trie();
+		var t = new Trie();
 		t.add("foo");
 		t.add("food");
 		assert(t.has("foo"));
@@ -196,8 +230,24 @@ public int main(string[] args) {
 		test(t, "Trie({f: {o: {o: {: \"foo\", d: \"food\"}}}})");
 	});
 
+	Test.add_func("/trie/match_some_chars", () => {
+		var t = new Trie();
+		t.add("foo");
+		t.add("food");
+		Matcher fn = (s) => {
+			long prefix_len = long.min(s.length, 3);
+			return s.substring(0, prefix_len) == "foo".substring(0, prefix_len);
+		};
+		assert(t.match("fo", fn).size == 2);
+		var m = t.match("foo", fn);
+		assert(m.contains("foo"));
+		assert(m.contains("food"));
+		assert(t.match("food", fn).contains("food"));
+		test(t, "Trie({f: {o: {o: {: \"foo\", d: \"food\"}}}})");
+	});
+
 	Test.add_func("/trie/add_one_remove_one", () => {
-		Trie t = new Trie();
+		var t = new Trie();
 		t.add("foo");
 		t.remove("foo");
 		assert(!t.has("foo"));
@@ -205,7 +255,7 @@ public int main(string[] args) {
 	});
 
 	Test.add_func("/trie/add_two_remove_one", () => {
-		Trie t = new Trie();
+		var t = new Trie();
 		t.add("foo");
 		t.add("bar");
 		t.remove("foo");
@@ -215,7 +265,7 @@ public int main(string[] args) {
 	});
 
 	Test.add_func("/trie/add_three_remove_one", () => {
-		Trie t = new Trie();
+		var t = new Trie();
 		t.add("foo");
 		t.add("bar");
 		t.add("baz");
@@ -227,14 +277,14 @@ public int main(string[] args) {
 	});
 
 	Test.add_func("/trie/remove_from_empty", () => {
-		Trie t = new Trie();
+		var t = new Trie();
 		t.remove("foo");
 		assert(!t.has("foo"));
 		test(t, "Trie(empty)");
 	});
 
 	Test.add_func("/trie/add_three_remove_nonexistent", () => {
-		Trie t = new Trie();
+		var t = new Trie();
 		t.add("foo");
 		t.add("bar");
 		t.add("baz");
