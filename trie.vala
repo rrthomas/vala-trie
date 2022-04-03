@@ -118,10 +118,12 @@ private class Node {
 			} else if (index == len)
 				this.branch.unset(0);
 			if (this.branch.size == 1) {
-				Map.Entry<unichar, Node> e = this.branch.entries.to_array()[0];
-				if (e.value.leaf != null) {
-					this.leaf = e.value.leaf;
-					this.branch = null;
+				foreach (var e in this.branch) {
+					if (e.value.leaf != null) {
+						this.leaf = e.value.leaf;
+						this.branch = null;
+					}
+					break;
 				}
 			}
 		} else if (this.leaf == word) {
