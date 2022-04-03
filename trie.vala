@@ -100,7 +100,7 @@ private class Node {
 				else
 					subtrie.add_index(word, len, index);
 			} else if (index == len) {
-				this.branch[u] = new Node.from_leaf(word);
+				this.branch[0] = new Node.from_leaf(word);
 			}
 		}
 	}
