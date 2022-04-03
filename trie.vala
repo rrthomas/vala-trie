@@ -99,9 +99,8 @@ private class Node {
 					this.branch[u] = new Node.from_leaf(word);
 				else
 					subtrie.add_index(word, len, index);
-			} else if (index == len) {
+			} else if (index == len)
 				this.branch[0] = new Node.from_leaf(word);
-			}
 		}
 	}
 
@@ -126,9 +125,8 @@ private class Node {
 					break;
 				}
 			}
-		} else if (this.leaf == word) {
+		} else if (this.leaf == word)
 			this.leaf = null;
-		}
 	}
 }
 
@@ -138,8 +136,7 @@ public class Trie {
 	public string to_string() {
 		if (this.root == null)
 			return "Trie(empty)";
-		else
-			return @"Trie($(this.root.to_string()))";
+		return @"Trie($(this.root.to_string()))";
 	}
 
 	public bool contains(string word) {
