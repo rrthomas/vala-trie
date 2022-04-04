@@ -64,7 +64,7 @@ private class Node {
 		}
 	}
 
-	internal Set<string> match_index(string word, long len, int index, Matcher fn, Set<string> results) {
+	internal Set<string> match_index(string word, int index, Matcher fn, Set<string> results) {
 		if (this.leaf != null) {
 			if (fn(word))
 				results.add(this.leaf);
@@ -73,24 +73,24 @@ private class Node {
 			if (word.get_next_char(ref index, out u)) {
 				var subtrie = this.branch[u];
 				if (subtrie != null && fn(word.substring(0, index)))
-					subtrie.match_index(word, len, index, fn, results);
+					subtrie.match_index(word, index, fn, results);
 			} else {
 				foreach (var e in this.branch)
-					e.value.match_index(word, len, (int)len, fn, results);
+					e.value.match_index(word, index, fn, results);
 			}
 		}
 		return results;
 	}
 
-	internal void add_index(string word, long len, int index) {
+	internal void add_index(string word, int index) {
 		if (this.leaf != null) {
 			var old_leaf = this.leaf;
 			if (old_leaf == word)
 				return;
 			this.leaf = null;
 			this.branch = new HashMap<unichar, Node>();
-			this.add_index(old_leaf, old_leaf.length, index);
-			this.add_index(word, len, index);
+			this.add_index(old_leaf, index);
+			this.add_index(word, index);
 		} else {
 			unichar u;
 			if (word.get_next_char(ref index, out u)) {
@@ -98,23 +98,23 @@ private class Node {
 				if (subtrie == null)
 					this.branch[u] = new Node.from_leaf(word);
 				else
-					subtrie.add_index(word, len, index);
-			} else if (index == len)
+					subtrie.add_index(word, index);
+			} else
 				this.branch[0] = new Node.from_leaf(word);
 		}
 	}
 
-	internal void remove_index(string word, long len, int index) {
+	internal void remove_index(string word, int index) {
 		if (this.leaf == null) {
 			unichar u;
 			if (word.get_next_char(ref index, out u)) {
 				Node subtrie = this.branch[u];
 				if (subtrie == null)
 					return;
-				subtrie.remove_index(word, len, index);
+				subtrie.remove_index(word, index);
 				if (subtrie.leaf == null && subtrie.branch == null)
 					this.branch.unset(u);
-			} else if (index == len)
+			} else
 				this.branch.unset(0);
 			if (this.branch.size == 1) {
 				foreach (var e in this.branch) {
@@ -149,20 +149,20 @@ public class Trie {
 		var results = new HashSet<string>();
 		if (this.root == null)
 			return results;
-		return this.root.match_index(word, word.length, 0, fn, results);
+		return this.root.match_index(word, 0, fn, results);
 	}
 
 	public void add(string word) {
 		if (this.root == null)
 			this.root = new Node.from_leaf(word);
 		else
-			this.root.add_index(word, word.length, 0);
+			this.root.add_index(word, 0);
 	}
 
 	public void remove(string word) {
 		if (this.root == null)
 			return;
-		this.root.remove_index(word, word.length, 0);
+		this.root.remove_index(word, 0);
 		if (this.root.leaf == null && this.root.branch == null)
 			this.root = null;
 	}
